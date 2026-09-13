@@ -39,15 +39,24 @@ func CreateEmployeeHandler(apiURL string) gin.HandlerFunc {
 			return
 		}
 
-		response, err := http.Post(
+		req, err := createEmployeeAPIRequest(
+			c,
+			http.MethodPost,
 			apiURL+"/employees",
-			"application/json",
 			bytes.NewBuffer(requestBody),
 		)
 
 		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "authentication required",
+			})
+			return
+		}
+
+		response, err := http.DefaultClient.Do(req)
+		if err != nil {
 			c.JSON(http.StatusBadGateway, gin.H{
-				"error": "failed to communicate with employee service",
+				"error": "failed to contact employee service",
 			})
 			return
 		}
@@ -56,7 +65,7 @@ func CreateEmployeeHandler(apiURL string) gin.HandlerFunc {
 
 		responseBody, err := io.ReadAll(response.Body)
 		if err != nil {
-			c.JSON(http.StatusBadGateway, gin.H{
+			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "failed to read employee service response",
 			})
 			return
@@ -73,9 +82,38 @@ func CreateEmployeeHandler(apiURL string) gin.HandlerFunc {
 func GetEmployeesHandler(apiURL string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		response, err := http.Get(
-			apiURL + "/employees",
+		// Get Cognito access token from cookie
+		tokenString, err := c.Cookie("ACCESS_TOKEN")
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "authentication required",
+			})
+			return
+		}
+
+		// Create request to API Gateway
+		req, err := http.NewRequest(
+			http.MethodGet,
+			apiURL+"/employees",
+			nil,
 		)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "failed to create employee service request",
+			})
+			return
+		}
+
+		// Forward Cognito access token
+		req.Header.Set(
+			"Authorization",
+			"Bearer "+tokenString,
+		)
+
+		// Send request
+		response, err := http.DefaultClient.Do(req)
 
 		if err != nil {
 			c.JSON(http.StatusBadGateway, gin.H{
@@ -108,9 +146,21 @@ func GetEmployeeByIDHandler(apiURL string) gin.HandlerFunc {
 
 		employeeID := c.Param("id")
 
-		response, err := http.Get(
-			apiURL + "/employees/" + employeeID,
+		req, err := createEmployeeAPIRequest(
+			c,
+			http.MethodGet,
+			apiURL+"/employees/"+employeeID,
+			nil,
 		)
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "authentication required",
+			})
+			return
+		}
+
+		response, err := http.DefaultClient.Do(req)
 
 		if err != nil {
 			c.JSON(http.StatusBadGateway, gin.H{
@@ -166,24 +216,21 @@ func UpdateEmployeeHandler(apiURL string) gin.HandlerFunc {
 			return
 		}
 
-		response, err := http.NewRequest(
+		req, err := createEmployeeAPIRequest(
+			c,
 			http.MethodPut,
 			apiURL+"/employees/"+employeeID,
 			bytes.NewBuffer(requestBody),
 		)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "failed to create request",
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "authentication required",
 			})
 			return
 		}
 
-		response.Header.Set("Content-Type", "application/json")
-
-		client := &http.Client{}
-
-		result, err := client.Do(response)
+		result, err := http.DefaultClient.Do(req)
 
 		if err != nil {
 			c.JSON(http.StatusBadGateway, gin.H{
@@ -216,22 +263,21 @@ func DeleteEmployeeHandler(apiURL string) gin.HandlerFunc {
 
 		employeeID := c.Param("id")
 
-		request, err := http.NewRequest(
+		req, err := createEmployeeAPIRequest(
+			c,
 			http.MethodDelete,
 			apiURL+"/employees/"+employeeID,
 			nil,
 		)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "failed to create request",
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "authentication required",
 			})
 			return
 		}
 
-		client := &http.Client{}
-
-		result, err := client.Do(request)
+		result, err := http.DefaultClient.Do(req)
 
 		if err != nil {
 			c.JSON(http.StatusBadGateway, gin.H{
@@ -274,7 +320,21 @@ func SearchEmployeesHandler(apiURL string) gin.HandlerFunc {
 		searchURL := apiURL + "/employees/search?q=" +
 			url.QueryEscape(query)
 
-		response, err := http.Get(searchURL)
+		req, err := createEmployeeAPIRequest(
+			c,
+			http.MethodGet,
+			searchURL,
+			nil,
+		)
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "authentication required",
+			})
+			return
+		}
+
+		response, err := http.DefaultClient.Do(req)
 
 		if err != nil {
 			c.JSON(http.StatusBadGateway, gin.H{
@@ -300,4 +360,40 @@ func SearchEmployeesHandler(apiURL string) gin.HandlerFunc {
 			responseBody,
 		)
 	}
+}
+
+func createEmployeeAPIRequest(
+	c *gin.Context,
+	method string,
+	requestURL string,
+	body io.Reader,
+) (*http.Request, error) {
+
+	tokenString, err := c.Cookie("ACCESS_TOKEN")
+
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(
+		method,
+		requestURL,
+		body,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set(
+		"Authorization",
+		"Bearer "+tokenString,
+	)
+
+	req.Header.Set(
+		"Content-Type",
+		"application/json",
+	)
+
+	return req, nil
 }
