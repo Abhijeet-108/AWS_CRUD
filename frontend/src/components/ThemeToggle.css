@@ -1,17 +1,21 @@
 .theme-toggle {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: none;
+  background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-sub);
-  font-size: 0.875rem;
-  transition: background-color var(--transition), border-color var(--transition);
+  border-radius: var(--radius-full);
+  color: var(--text);
+  font-size: 1rem;
+  transition: all var(--transition);
+  cursor: pointer;
 }
 
 .theme-toggle:hover {
-  background: var(--bg-input);
+  background: var(--bg-surface);
+  transform: rotate(15deg) scale(1.1);
+  box-shadow: var(--shadow-sm);
+  color: var(--accent);
 }

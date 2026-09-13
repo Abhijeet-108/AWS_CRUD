@@ -5,29 +5,11 @@ const api = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
+    withCredentials: true, // send session cookie with every request
 });
 
-// Attach Bearer token from localStorage to every request
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('emp_auth_token');
-    if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-});
-
-// Redirect to login on 401 Unauthorized
-api.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response?.status === 401) {
-            localStorage.removeItem('emp_auth_token');
-            localStorage.removeItem('emp_auth_user');
-            window.location.href = '/login';
-        }
-        return Promise.reject(error);
-    }
-);
+// MongoDB returns `_id` — normalize it to `id` so the rest of the app works uniformly
+const normalizeEmployee = (emp) => ({ ...emp, id: emp._id ?? emp.id });
 
 export const createEmployee = async(employee) => {
     const response = await api.post("/employees", employee)
@@ -35,8 +17,10 @@ export const createEmployee = async(employee) => {
 }
 
 export const getEmployees = async() => {
-    const response = await api.get("/employees")
-    return response.data;
+    const response = await api.get("/employees");
+    const raw = response.data;
+    const list = Array.isArray(raw) ? raw : (raw.employees ?? raw.data ?? []);
+    return list.map(normalizeEmployee);
 }
 
 export const getEmployeeById = async(id) => {
@@ -45,8 +29,10 @@ export const getEmployeeById = async(id) => {
 }
 
 export const searchEmployees = async(query) => {
-    const response = await api.get(`/employees/search`, { params: { q : query, }, })
-    return response.data;
+    const response = await api.get(`/employees/search`, { params: { q: query } });
+    const raw = response.data;
+    const list = Array.isArray(raw) ? raw : (raw.employees ?? raw.data ?? []);
+    return list.map(normalizeEmployee);
 }
 
 export const updateEmployee = async(id, employee) => {

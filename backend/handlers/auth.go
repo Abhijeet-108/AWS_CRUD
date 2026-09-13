@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -66,8 +65,8 @@ func LoginHandler(cfg config.Config) gin.HandlerFunc {
 		authorizationURL := cfg.CognitoDomain + "/oauth2/authorize?" + params.Encode()
 		// fmt.Println("Authorization URL:")
 
-		fmt.Println("Authorization URL:")
-		fmt.Println(authorizationURL)
+		// fmt.Println("Authorization URL:")
+		// fmt.Println(authorizationURL)
 
 		c.Redirect(http.StatusFound, authorizationURL)
 

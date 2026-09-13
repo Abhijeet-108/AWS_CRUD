@@ -29,7 +29,7 @@ func AuthMiddleware(jwtValidator *auth.JWTValidator) gin.HandlerFunc {
 
 		c.Set("user_id", claims.Subject)
 		c.Set("username", claims.Username)
-		c.Set("name", claims.Name)
+		c.Set("client_id", claims.ClientID)
 
 		c.Next()
 	}

@@ -14,6 +14,7 @@ type Config struct {
 	CognitoClientID     string
 	CognitoClientSecret string
 	CognitoRedirectURI  string
+	EmployeeAPIURL      string
 }
 
 func Load() Config {
@@ -30,6 +31,7 @@ func Load() Config {
 		CognitoClientID:     getConfig("COGNITO_CLIENT_ID", ""),
 		CognitoClientSecret: getConfig("COGNITO_CLIENT_SECRET", ""),
 		CognitoRedirectURI:  getConfig("COGNITO_REDIRECT_URI", ""),
+		EmployeeAPIURL:      getConfig("EMPLOYEE_API_URL", ""),
 	}
 
 }

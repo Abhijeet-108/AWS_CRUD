@@ -1,57 +1,74 @@
 .header {
   position: sticky;
-  top: 0;
+  top: 1rem;
   z-index: 100;
-  background-color: var(--bg-surface);
-  border-bottom: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  margin: 0 2rem;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
 }
 
 .header-inner {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 0 3rem;
-  height: 56px;
+  padding: 0 2rem;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 @media (max-width: 768px) {
+  .header {
+    top: 0.5rem;
+    margin: 0 1rem;
+  }
   .header-inner {
-    padding: 0 1rem;
+    padding: 0 1.25rem;
   }
 }
 
 .header-brand {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--text);
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-decoration: none;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
 .header-user {
-  font-size: 0.8125rem;
-  color: var(--text-muted);
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  font-weight: 500;
 }
 
 .btn-logout {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--text-sub);
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 0.3rem 0.75rem;
-  transition: border-color var(--transition), color var(--transition);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  padding: 0.5rem 1.25rem;
+  transition: all var(--transition);
 }
 
 .btn-logout:hover {
-  border-color: var(--danger);
-  color: var(--danger);
+  background: var(--danger);
+  color: var(--danger-text);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
 }
